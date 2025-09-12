@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 export default class News extends Component {
+  apiKey = process.env.REACT_APP_NEWS_API;
   static defaultProps = {
     country: "us",
     pageSize: 8,
@@ -30,40 +31,28 @@ export default class News extends Component {
   }
 
   async updateNews() {
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=2b5483ae48e145498425f0605e7cb890&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+    this.props.setProgress(10);
+    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.apiKey}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
     this.setState({ loading: true });
     let data = await fetch(url);
+    this.props.setProgress(30);
     let parsedData = await data.json();
+    this.props.setProgress(70);
     this.setState({
       articles: parsedData.articles,
       totalResults: parsedData.totalResults,
       loading: false,
     });
+    this.props.setProgress(100);
   }
 
   async componentDidMount() {
     this.updateNews();
   }
-  handlePrevClick = async () => {
-    this.setState(
-      {
-        page: this.state.page - 1,
-      },
-      () => this.updateNews()
-    );
-  };
-  handleNextClick = async () => {
-    this.setState(
-      {
-        page: this.state.page + 1,
-      },
-      () => this.updateNews()
-    );
-  };
 
   fetchMoreData = async () => {
     this.setState({ page: this.state.page + 1 });
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=2b5483ae48e145498425f0605e7cb890&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.apiKey}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
     let data = await fetch(url);
     let parsedData = await data.json();
     this.setState({
@@ -71,10 +60,11 @@ export default class News extends Component {
       totalResults: parsedData.totalResults,
     });
   };
+
   render() {
     return (
       <>
-        <h1 className="text-center" style={{ marginBottom: "2rem" }}>
+        <h1 className="text-center" style={{ margin: "2rem" }}>
           NewsMonkey - Top {this.capitalize(this.props.category)} Headlines
         </h1>
         {this.state.loading && <Spinner />}
@@ -83,7 +73,7 @@ export default class News extends Component {
           next={this.fetchMoreData}
           hasMore={this.state.articles.length < this.state.totalResults}
           loader={<Spinner />}
-          endMessage={<div> that's it</div>}
+          // endMessage={<div> that's it</div>}
         >
           <div className="container">
             <div className="row">
